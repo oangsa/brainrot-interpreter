@@ -6,11 +6,13 @@ export enum TokenType {
     Identifier,
     Null,
 
+
     // Grouping & Operator
     Equals,
     OpenParen, 
     CloseParen,
     BinaryOperator,
+    RelationalOperator,
     EOF, // Signified the end of file
 
     // Keywords
@@ -21,7 +23,7 @@ export enum TokenType {
 const KEYWORDS: Record<string, TokenType> = {
     "beta": TokenType.Var,
     "sigma": TokenType.Const,
-    "null": TokenType.Null
+    "null": TokenType.Null,
 }
 
 export interface Token {
@@ -48,6 +50,10 @@ function isSkippable (str: string) {
     return str == " " || str == "\n" || str == "\t" || str == "\r" || str == ";" || str == "\0";
 }
 
+function isRelationalOp(str: string) {
+    return str == '>' || str == '<' || str == '='
+}
+
 export function tokenize (sourceCode: string): Token[] {
     const tokens = new Array<Token>();
     const src = sourceCode.split("");
@@ -63,12 +69,24 @@ export function tokenize (sourceCode: string): Token[] {
         else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == "%") {
             tokens.push(token(src.shift(), TokenType.BinaryOperator));
         }
-        else if (src[0] == '=') {
-            tokens.push(token(src.shift(), TokenType.Equals));
-        }
+        // else if (src[0] == '=') {
+        //     tokens.push(token(src.shift(), TokenType.Equals));
+        // }
         else {
             // Handle multicharacter tokens
-            if (isNumber(src[0])) {
+            if (isRelationalOp(src[0])) {
+                let op = "" as string;
+                while (src.length > 0 && isRelationalOp(src[0])) {
+                    op += src.shift();
+                }
+                if (op == "=") {
+                    tokens.push(token(op, TokenType.Equals));
+                }
+                else {
+                    tokens.push(token(op, TokenType.RelationalOperator));
+                }
+            }
+            else if (isNumber(src[0])) {
                 let num = "";
                 while (src.length > 0 && isNumber(src[0])) {
                     num += src.shift();
@@ -107,14 +125,14 @@ export function tokenize (sourceCode: string): Token[] {
 }
 
 
-const file = Bun.file("./main.gzc");
-const source = await file.text();
+// const file = Bun.file("./main.gzc");
+// const source = await file.text();
 
-// console.log(source)
+// // console.log(source)
 
-// for (const token of source) {
-//     console.log(JSON.stringify(token))
-// }
+// // for (const token of source) {
+// //     console.log(JSON.stringify(token))
+// // }
 
 // for (const token of tokenize(source)) {
 //     console.log(token);

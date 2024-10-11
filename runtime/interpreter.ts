@@ -36,7 +36,6 @@ function evaluate_binary_expr (biop: BinaryExpr): RuntimeValue {
 }
 
 
-
 function evaluate_program (program: Program): RuntimeValue {
     let lastEvaluated: RuntimeValue = { type: 'null', value: 'null' } as NullValue
 
@@ -64,6 +63,6 @@ export function evaluate (astNote: Statement): RuntimeValue {
 
         default:
             console.error(astNote)
-            throw("[Interpreter Error] This AST Note has not yet implement.")
+            throw("[Runtime Error] This AST Note has not yet implement.")
     }
 }
