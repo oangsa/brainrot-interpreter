@@ -9,6 +9,14 @@ export enum TokenType {
     // Grouping & Operator
     Equals,
     Semicolon,
+    Comma,
+    Colon,
+    Dot,
+    Quote,
+    OpenBrace,
+    CloseBrace,
+    OpenBracket,
+    CloseBracket,
     OpenParen, 
     CloseParen,
     BinaryOperator,
@@ -18,11 +26,18 @@ export enum TokenType {
     // Keywords
     Var,
     Const,
+    Fn,
+    Comment
 }
+
+var flag: boolean = false;
+var isYap: boolean = false;
 
 const KEYWORDS: Record<string, TokenType> = {
     "beta": TokenType.Var,
     "sigma": TokenType.Const,
+    "cooking": TokenType.Fn,
+    "yap": TokenType.Comment,
 }
 
 export interface Token {
@@ -58,18 +73,64 @@ export function tokenize (sourceCode: string): Token[] {
     const src = sourceCode.split("");
 
     // Build the token until the EOF
-    while (src.length > 0) {
+    while (src.length > 0) { 
+        while (isYap == true && src[0] != "\r" && src[0] != undefined) {
+            src.shift();
+            continue;
+        }
+
+        isYap = false;
+
+        if (src[0] == undefined) break;
+
         if (src[0] == '(') {
             tokens.push(token(src.shift(), TokenType.OpenParen));
+            continue;
         } 
         else if (src[0] == ')') {
-            tokens.push(token(src.shift(), TokenType.CloseParen))
+            tokens.push(token(src.shift(), TokenType.CloseParen));
+            continue;
+        }
+        else if (src[0] == '{') {
+            tokens.push(token(src.shift(), TokenType.OpenBrace));
+            continue;
+        }
+        else if (src[0] == '}') {
+            tokens.push(token(src.shift(), TokenType.CloseBrace));
+            continue;
+        }
+        else if (src[0] == '[') {
+            tokens.push(token(src.shift(), TokenType.OpenBracket));
+            continue;
+        }
+        else if (src[0] == ']') {
+            tokens.push(token(src.shift(), TokenType.CloseBracket));
+            continue;
         }
         else if (src[0] == ";") {
             tokens.push(token(src.shift(), TokenType.Semicolon));
-        } 
+            continue;
+        }
+        else if (src[0] == ",") {
+            tokens.push(token(src.shift(), TokenType.Comma));
+            continue;
+        }
+        else if (src[0] == ":") {
+            tokens.push(token(src.shift(), TokenType.Colon));
+            continue;
+        }
+        else if (src[0] == ".") {
+            tokens.push(token(src.shift(), TokenType.Dot));
+            continue;
+        }
+        else if (src[0] == '"' || src[0] == "'") {
+            tokens.push(token(src.shift(), TokenType.Quote));
+            flag = true;
+            continue;
+        }
         else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == "%") {
             tokens.push(token(src.shift(), TokenType.BinaryOperator));
+            continue;
         }
         // else if (src[0] == '=') {
         //     tokens.push(token(src.shift(), TokenType.Equals));
@@ -87,6 +148,7 @@ export function tokenize (sourceCode: string): Token[] {
                 else {
                     tokens.push(token(op, TokenType.RelationalOperator));
                 }
+                continue;
             }
             else if (isNumber(src[0])) {
                 let num = "";
@@ -94,35 +156,58 @@ export function tokenize (sourceCode: string): Token[] {
                     num += src.shift();
                 }
 
-                tokens.push(token(num, TokenType.Number))
+                tokens.push(token(num, TokenType.Number));
+                continue;
             }
             else if (isAlpha(src[0])) {
                 let ident = "";
-                while (src.length > 0 && isAlpha(src[0])) {
-                    ident += src.shift();
+                // while (src.length > 0 && isAlpha(src[0])) {
+                //     ident += src.shift();
+                // }
+                if (flag == false) {
+                    while (src.length > 0 && isAlpha(src[0])) {
+                        ident += src.shift();
+                    }
+                }
+                else {
+                    while (flag) {
+                        if (src[0] == '"' || src[0] == "'") {
+                            break;
+                        }
+                        ident += src.shift();
+                    }
                 }
 
                 // check for reserved keywords
                 const reserved = KEYWORDS[ident];
 
+                // To check if the line is comment or not.
+                if (reserved == TokenType.Comment) {
+                    isYap = true;
+                    continue
+                }
+
                 if (typeof reserved == "number") {
                     tokens.push(token(ident, reserved));
                 }   
                 else {
-                    tokens.push(token(ident, TokenType.Identifier))
+                    tokens.push(token(ident, TokenType.Identifier));
                 }
-                
+                if (flag) tokens.push(token(src.shift(), TokenType.Quote));
+                flag = false;
+                continue;
             }
             else if (isSkippable(src[0])) {
                 // Just skip the current character
                 src.shift();
+                continue;
             } else {
                 throw(`You are too skibidi for this language. Like FR dude?\n[Tokenize Error] Unrecognize token found: '${src[0]}'`);
             }
 
         }
     }
-    tokens.push({type: TokenType.EOF, value: "EndOfFile"})
+    tokens.push({type: TokenType.EOF, value: "EndOfFile"});
     return tokens;
 }
 

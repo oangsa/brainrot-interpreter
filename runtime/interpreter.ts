@@ -1,33 +1,45 @@
-import { ValueType, RuntimeValue, NumberValue, MK_NULL } from './values';
-import { AssignmentExpr, BinaryExpr, Identifier, NoteType, NumericLiteral, Program, Statement, VarDeclaration } from '../frontend/ast';
+import { RuntimeValue } from './values';
+import { AssignmentExpr, BinaryExpr, CallExpr, FunctionDeclaration, Identifier, NumericLiteral, ObjectLiteral, Program, Statement, StringLiteral, VarDeclaration } from '../frontend/ast';
 import Environment from './environment';
-import { evaluate_program, eval_var_declaration } from './evals/statements';
-import { eval_assignment, eval_idenifier, evaluate_binary_expr } from './evals/expressions';
+import { evaluate_program, eval_var_declaration, eval_func_declaration } from './evals/statements';
+import { eval_assignment, eval_call_expr, eval_idenifier, eval_object_expr, evaluate_binary_expr } from './evals/expressions';
 
-export function evaluate(astNote: Statement, env: Environment): RuntimeValue {
+export function evaluate(astNode: Statement, env: Environment): RuntimeValue {
 
-    switch (astNote.kind) {
+    switch (astNode.kind) {
         case "NumericLiteral":
-            return { value: ((astNote as NumericLiteral).value), type: "number" } as RuntimeValue
+            return { value: ((astNode as NumericLiteral).value), type: "number" } as RuntimeValue
+
+        case "StringLiteral":
+            return { value: ((astNode as StringLiteral).value), type: "string" } as RuntimeValue
 
         case "Identifier":
-            return eval_idenifier(astNote as Identifier, env);
+            return eval_idenifier(astNode as Identifier, env);
+        
+        case "ObjectLiteral":
+            return eval_object_expr(astNode as ObjectLiteral, env);
+        
+        case "CallExpr":
+            return eval_call_expr(astNode as CallExpr, env);
 
         case "AssignmentExpr":
-            return eval_assignment(astNote as AssignmentExpr, env);
+            return eval_assignment(astNode as AssignmentExpr, env);
 
         case 'BinaryExpr':
-            return evaluate_binary_expr(astNote as BinaryExpr, env);
+            return evaluate_binary_expr(astNode as BinaryExpr, env);
 
         case 'Program':
-            return evaluate_program(astNote as Program, env);
+            return evaluate_program(astNode as Program, env);
 
         case "VariableDeclaration":
-            return eval_var_declaration(astNote as VarDeclaration, env)
+            return eval_var_declaration(astNode as VarDeclaration, env)
+        
+        case "FunctionDeclaration":
+            return eval_func_declaration(astNode as FunctionDeclaration, env)
 
         default:
-            console.error(astNote)
-            throw("[Runtime Error] This AST Note has not yet implement.")
+            console.error(astNode)
+            throw("[Runtime Error] This AST Node has not yet implement.")
     }
 }
 

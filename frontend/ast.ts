@@ -1,19 +1,25 @@
-export type NoteType = 
+export type NodeType = 
     // Statements
     | "Program"
     | "VariableDeclaration"
     | "FunctionDeclaration"
     
     // Expressions
-    | "NumericLiteral"
     | "AssignmentExpr"
-    | "Identifier" 
     | "BinaryExpr" 
     | "CallExpr"
-    | "UnaryExpr";
+    | "UnaryExpr"
+    | "MemberExpr"
+    
+    // Literals
+    | "Property"
+    | "ObjectLiteral"
+    | "Identifier"
+    | "StringLiteral" 
+    | "NumericLiteral";
 
 export interface Statement {
-    kind: NoteType;
+    kind: NodeType;
 }
 
 export interface Program extends Statement {
@@ -26,6 +32,13 @@ export interface VarDeclaration extends Statement {
     isConstant: boolean;
     identifier: string;
     value?: Expr
+}
+
+export interface FunctionDeclaration extends Statement {
+    kind: "FunctionDeclaration";
+    params: string[];
+    name: string;
+    body: Statement[];
 }
 
 export interface Expr extends Statement {}
@@ -51,5 +64,32 @@ export interface Identifier extends Expr {
 export interface NumericLiteral extends Expr {
     kind: "NumericLiteral";
     value: number;
+}
+
+export interface StringLiteral extends Expr {
+    kind: "StringLiteral";
+    value: string;
+}
+export interface Property extends Expr {
+    kind: "Property";
+    key: string;
+    value?: Expr;
+}
+export interface ObjectLiteral extends Expr {
+    kind: "ObjectLiteral";
+    properties: Property[];
+}
+
+export interface MemberExpr extends Expr {
+    kind: "MemberExpr";
+    object: Expr;
+    property: Expr;
+    isComputed: boolean;
+}
+
+export interface CallExpr extends Expr {
+    kind: "CallExpr";
+    args: Expr[];
+    caller: Expr;
 }
 

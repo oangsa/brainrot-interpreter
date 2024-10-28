@@ -1,17 +1,38 @@
 import Parser from "./frontend/parser";
 import Environment from "./runtime/environment";
+import {createGlobalEnv} from "./runtime/environment";
 import { evaluate } from "./runtime/interpreter";
-import { MK_BOOL, MK_NULL, MK_NUM } from "./runtime/values";
+import { parseArgs } from "util";
 
-repl();
+const { values, positionals } = parseArgs({
+    args: Bun.argv,
+    options: {
+      file: {
+        type: 'string',
+      },
+    },
+    strict: true,
+    allowPositionals: true,
+});
+
+run(values.file as string);
+
+async function run(filename: string) {
+    const parser = new Parser();
+    const env = createGlobalEnv();;
+
+    const ipt = Bun.file(filename);
+    const txt = await ipt.text()
+    const program = parser.produceAST(txt);
+    const result = evaluate(program, env)
+
+    // console.log(result)
+
+}
 
 async function repl() {
     const parser = new Parser();
     const env = new Environment();
-    
-    env.declareVar('True', MK_BOOL(true), true);
-    env.declareVar('False', MK_BOOL(false), true);
-    env.declareVar('null', MK_NULL(), true);
 
     console.log("\nGen Z Language Repl V 0.1");
 
