@@ -1,14 +1,17 @@
 export type NoteType = 
-    | "Program" 
-    | "NumericLiteral" 
-    | "NullLiteral" 
+    // Statements
+    | "Program"
+    | "VariableDeclaration"
+    | "FunctionDeclaration"
+    
+    // Expressions
+    | "NumericLiteral"
+    | "AssignmentExpr"
     | "Identifier" 
     | "BinaryExpr" 
     | "CallExpr"
-    | "UnaryExpr"
-    | "FunctionDeclaration";
+    | "UnaryExpr";
 
-// 
 export interface Statement {
     kind: NoteType;
 }
@@ -18,7 +21,20 @@ export interface Program extends Statement {
     body: Statement[];
 }
 
+export interface VarDeclaration extends Statement {
+    kind: "VariableDeclaration";
+    isConstant: boolean;
+    identifier: string;
+    value?: Expr
+}
+
 export interface Expr extends Statement {}
+
+export interface AssignmentExpr extends Expr {
+    kind: "AssignmentExpr";
+    assigne: Expr;
+    value: Expr;
+}
 
 export interface BinaryExpr extends Expr {
     kind: "BinaryExpr"
@@ -35,10 +51,5 @@ export interface Identifier extends Expr {
 export interface NumericLiteral extends Expr {
     kind: "NumericLiteral";
     value: number;
-}
-
-export interface NullLiteral extends Expr {
-    kind: "NullLiteral";
-    value: "null";
 }
 

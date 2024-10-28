@@ -4,11 +4,11 @@
 export enum TokenType {
     Number,
     Identifier,
-    Null,
-
+    String,
 
     // Grouping & Operator
     Equals,
+    Semicolon,
     OpenParen, 
     CloseParen,
     BinaryOperator,
@@ -23,7 +23,6 @@ export enum TokenType {
 const KEYWORDS: Record<string, TokenType> = {
     "beta": TokenType.Var,
     "sigma": TokenType.Const,
-    "null": TokenType.Null,
 }
 
 export interface Token {
@@ -47,7 +46,7 @@ function isNumber (str: string) {
 }
 
 function isSkippable (str: string) {
-    return str == " " || str == "\n" || str == "\t" || str == "\r" || str == ";" || str == "\0";
+    return str == " " || str == "\n" || str == "\t" || str == "\r" || str == "\0";
 }
 
 function isRelationalOp(str: string) {
@@ -65,6 +64,9 @@ export function tokenize (sourceCode: string): Token[] {
         } 
         else if (src[0] == ')') {
             tokens.push(token(src.shift(), TokenType.CloseParen))
+        }
+        else if (src[0] == ";") {
+            tokens.push(token(src.shift(), TokenType.Semicolon));
         } 
         else if (src[0] == '+' || src[0] == '-' || src[0] == '*' || src[0] == '/' || src[0] == "%") {
             tokens.push(token(src.shift(), TokenType.BinaryOperator));

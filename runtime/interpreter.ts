@@ -1,68 +1,34 @@
-import { ValueType, RuntimeValue, NullValue, NumberValue } from './values';
-import { BinaryExpr, NoteType, NumericLiteral, Program, Statement } from '../frontend/ast';
+import { ValueType, RuntimeValue, NumberValue, MK_NULL } from './values';
+import { AssignmentExpr, BinaryExpr, Identifier, NoteType, NumericLiteral, Program, Statement, VarDeclaration } from '../frontend/ast';
+import Environment from './environment';
+import { evaluate_program, eval_var_declaration } from './evals/statements';
+import { eval_assignment, eval_idenifier, evaluate_binary_expr } from './evals/expressions';
 
-
-function evaluate_numeric_binary_expr (lhs: NumberValue, rhs: NumberValue, operator: string): NumberValue {
-    let result: number = 0;
-
-    if (operator == "+") {
-        result = lhs.value + rhs.value;
-    }
-    else if (operator == "-") {
-        result = lhs.value - rhs.value;
-    }
-    else if (operator == "*") {
-        result = lhs.value * rhs.value;
-    }
-    else if (operator == "/") {
-        result = lhs.value / rhs.value;
-    }
-    else {
-        result = lhs.value % rhs.value;
-    }
-
-    return {value: result, type: "number"}
-}
-
-function evaluate_binary_expr (biop: BinaryExpr): RuntimeValue {
-    const lhs = evaluate(biop.lhs);
-    const rhs = evaluate(biop.rhs);
-
-    if (lhs.type == 'number' && rhs.type == 'number') {
-        return evaluate_numeric_binary_expr(lhs as NumberValue, rhs as NumberValue, biop.operator);
-    }
-
-    return { type: "null", value: "null" } as NullValue;
-}
-
-
-function evaluate_program (program: Program): RuntimeValue {
-    let lastEvaluated: RuntimeValue = { type: 'null', value: 'null' } as NullValue
-
-    for (const statement of program.body) {
-        lastEvaluated = evaluate(statement);
-    }
-    return lastEvaluated;
-}
-
-export function evaluate (astNote: Statement): RuntimeValue {
-
+export function evaluate(astNote: Statement, env: Environment): RuntimeValue {
 
     switch (astNote.kind) {
         case "NumericLiteral":
             return { value: ((astNote as NumericLiteral).value), type: "number" } as RuntimeValue
 
-        case "NullLiteral":
-            return {value: "null", type: "null"} as NullValue;
+        case "Identifier":
+            return eval_idenifier(astNote as Identifier, env);
+
+        case "AssignmentExpr":
+            return eval_assignment(astNote as AssignmentExpr, env);
 
         case 'BinaryExpr':
-            return evaluate_binary_expr(astNote as BinaryExpr);
+            return evaluate_binary_expr(astNote as BinaryExpr, env);
 
         case 'Program':
-            return evaluate_program(astNote as Program);
+            return evaluate_program(astNote as Program, env);
+
+        case "VariableDeclaration":
+            return eval_var_declaration(astNote as VarDeclaration, env)
 
         default:
             console.error(astNote)
             throw("[Runtime Error] This AST Note has not yet implement.")
     }
 }
+
+
