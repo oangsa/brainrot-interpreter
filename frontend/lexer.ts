@@ -27,7 +27,10 @@ export enum TokenType {
     Var,
     Const,
     Fn,
-    Comment
+    Comment,
+    If,
+    Else,
+    Throw
 }
 
 var flag: boolean = false;
@@ -38,6 +41,9 @@ const KEYWORDS: Record<string, TokenType> = {
     "sigma": TokenType.Const,
     "cooking": TokenType.Fn,
     "yap": TokenType.Comment,
+    "sus": TokenType.If,
+    "imposter": TokenType.Else,
+    "yeet": TokenType.Identifier
 }
 
 export interface Token {

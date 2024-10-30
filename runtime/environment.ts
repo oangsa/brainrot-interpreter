@@ -1,4 +1,5 @@
-import { MK_BOOL, MK_INTERNAL_FN, MK_NULL, MK_NUM, MK_STR, RuntimeValue } from './values'
+import { Identifier, MemberExpr } from '../frontend/ast';
+import { MK_BOOL, MK_INTERNAL_FN, MK_NULL, MK_NUM, MK_STR, ObjectValue, RuntimeValue, StringValue } from './values'
 
 export function createGlobalEnv(): Environment {
     const env = new Environment ()
@@ -9,8 +10,25 @@ export function createGlobalEnv(): Environment {
 
     // Define Internal Fn
     env.declareVar("yell", MK_INTERNAL_FN((args, _scope) => {
-        // console.log(...args)
-        for (const arg of args) console.log(arg?.value)
+        let newObj = {};
+        for (const arg of args) {
+            if (arg.type === "object") {
+                console.log((arg as ObjectValue).properties);
+            }
+            else {
+                // Just use string value as a temp to prevent error
+                console.log((arg as StringValue).value)
+            }
+        }
+        return MK_NULL();
+    }), true)
+
+    env.declareVar("yeet", MK_INTERNAL_FN((args, _scope) => {
+        if (args.length > 1) throw `Skibidi dom dom yes yes.\n[Value Error] Function named 'yeet' only take 1 argument.`
+
+        for (const arg of args) {
+            throw((arg as StringValue).value);
+        }
         return MK_NULL();
     }), true)
 
@@ -66,6 +84,31 @@ export default class Environment {
         const env = this.resolve(varName);
 
         return env.variables.get(varName) as RuntimeValue;
+    }
+
+    public lookObj(expr: MemberExpr, value?: RuntimeValue, key?: Identifier): RuntimeValue {
+        let pVal;
+        if (expr.object.kind === "MemberExpr") {
+            pVal = this.lookObj(expr.object as MemberExpr, null, (expr.object as MemberExpr).property as Identifier)
+        }
+        else {
+            
+            const varName = (expr.object as Identifier).symbol; // Grab the name
+            
+            const env = this.resolve(varName);
+            
+            pVal = env.variables.get(varName);
+        }
+
+        const currentProp = (expr.property as Identifier).symbol;
+        
+        const prop = key ? key.symbol : currentProp;
+
+        if (value) (pVal as ObjectValue).properties.set(prop, value);
+
+        if (currentProp) pVal = ((pVal as ObjectValue).properties.get(currentProp) as ObjectValue);
+
+        return pVal;
     }
 
     public resolve(varName: string): Environment {

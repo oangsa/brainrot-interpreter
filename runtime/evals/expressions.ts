@@ -1,28 +1,88 @@
-import { AssignmentExpr, BinaryExpr, CallExpr, Identifier, ObjectLiteral, VarDeclaration } from "../../frontend/ast";
+import { AssignmentExpr, BinaryExpr, CallExpr, Identifier, MemberExpr, ObjectLiteral } from "../../frontend/ast";
 import Environment from "../environment";
 import { evaluate } from "../interpreter";
-import { NumberValue, RuntimeValue, MK_NULL, ObjectValue, InternalFnValue, UserDefinedFnValue } from "../values";
+import { NumberValue, RuntimeValue, MK_NULL, ObjectValue, InternalFnValue, UserDefinedFnValue, BooleanValue } from "../values";
 
 export function evaluate_numeric_binary_expr(lhs: NumberValue, rhs: NumberValue, operator: string): NumberValue {
     let result: number = 0;
 
-    if (operator == "+") {
-        result = lhs.value + rhs.value;
-    }
-    else if (operator == "-") {
-        result = lhs.value - rhs.value;
-    }
-    else if (operator == "*") {
-        result = lhs.value * rhs.value;
-    }
-    else if (operator == "/") {
-        result = lhs.value / rhs.value;
-    }
-    else {
-        result = lhs.value % rhs.value;
+    switch (operator) {
+        case "+":
+            result = lhs.value + rhs.value;
+            
+        case "-":
+            result = lhs.value - rhs.value;
+
+        case "*":
+            result = lhs.value * rhs.value;
+
+        case "/":
+            result = lhs.value / rhs.value;
+
+        default:
+            result = lhs.value % rhs.value;
     }
 
     return {value: result, type: "number"}
+}
+
+export function evaluate_relation_expr(lhs: BooleanValue, rhs: BooleanValue, operator: string): BooleanValue {
+    let result: boolean;
+
+    switch (operator) {
+        case "&&":
+            result = lhs.value && rhs.value;
+            
+        case "||":
+            result = lhs.value || rhs.value;
+
+        case ">":
+            result = lhs.value > rhs.value;
+
+        case ">=":
+            result = lhs.value >= rhs.value;
+
+        case "<":
+            result = lhs.value < rhs.value;
+        
+        case "<=":
+            result = lhs.value <= rhs.value;
+
+        case "!=":
+            result = lhs.value <= rhs.value;
+
+        default:
+            result = lhs.value != rhs.value;
+    }
+
+    return {value: result, type: "boolean"}
+}
+
+export function evaluate_comparison_expr(lhs: NumberValue, rhs: NumberValue, operator: string): BooleanValue {
+    let result: boolean;
+
+    switch (operator) {
+
+        case ">":
+            result = lhs.value > rhs.value;
+
+        case ">=":
+            result = lhs.value >= rhs.value;
+
+        case "<":
+            result = lhs.value < rhs.value;
+        
+        case "<=":
+            result = lhs.value <= rhs.value;
+
+        case "!=":
+            result = lhs.value <= rhs.value;
+
+        default:
+            result = lhs.value != rhs.value;
+    }
+
+    return {value: result, type: "boolean"}
 }
 
 export function evaluate_binary_expr (biop: BinaryExpr, env: Environment): RuntimeValue {
@@ -86,6 +146,13 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeValue {
 
     throw `You have no part of symphony 🐬🐬\n[Runtime Error]: '${JSON.stringify(fn)}' is not a function.`
 
+}
+
+export function eval_member_expr(env: Environment, node: AssignmentExpr, expr: MemberExpr): RuntimeValue {
+    if (expr) return env.lookObj(expr);
+    if (node) return env.lookObj(node.assigne as MemberExpr, evaluate(node.value, env));
+    
+    throw `You have no part of symphony 🐬🐬\n[Runtime Error]: Variable named '${(node as AssignmentExpr).assigne} is not an object.'`;
 }
 
 export function eval_assignment(node: AssignmentExpr, env: Environment): RuntimeValue {

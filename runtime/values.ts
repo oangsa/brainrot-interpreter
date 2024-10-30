@@ -63,6 +63,10 @@ export function MK_BOOL(b = true) {
     return { type: "boolean", value: b } as BooleanValue
 }
 
+export function MK_OBJECT(obj: Map<string, RuntimeValue>): ObjectValue {
+    return { type: "object", properties: obj } as ObjectValue;
+}
+
 export function MK_INTERNAL_FN(call: FunctionCall) {
     return { type: "internal-fn", call: call } as InternalFnValue
 }

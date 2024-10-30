@@ -1,39 +1,10 @@
-yap this is a comment
+yap object declaration.
 
-sigma foo = 55;
-sigma a = "Hello world";
-
-cooking myFunc(foo, bar) {
-    beta z = "Hello but inside the function"; yap this is a comment
-    cooking func() {
-        yell(z)
-    }
-
-    func()
-}
-
-cooking add(x, y) {
-    sigma foo = x + y;
-
-    foo
-}
-myFunc()
-
-sigma obj = {
-  x: 100,
-  y: 32,
-  foo: foo,
-  complex: {
-    bar: True,
-  },
+sigma Natacha = {
+  name: "Natacha",
+  speed: 169
 };
 
-add(5, 6)
+yeet("This is a custom error lol")
 
-yell(foo, 45)
-
-yell(a)
-
-yell(typeof(a))
-
-yell(typeof(foo))
+yell(Natacha.name)

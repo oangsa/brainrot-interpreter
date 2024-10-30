@@ -1,8 +1,8 @@
 import { RuntimeValue } from './values';
-import { AssignmentExpr, BinaryExpr, CallExpr, FunctionDeclaration, Identifier, NumericLiteral, ObjectLiteral, Program, Statement, StringLiteral, VarDeclaration } from '../frontend/ast';
+import { AssignmentExpr, BinaryExpr, CallExpr, FunctionDeclaration, Identifier, MemberExpr, NumericLiteral, ObjectLiteral, Program, Statement, StringLiteral, VarDeclaration } from '../frontend/ast';
 import Environment from './environment';
 import { evaluate_program, eval_var_declaration, eval_func_declaration } from './evals/statements';
-import { eval_assignment, eval_call_expr, eval_idenifier, eval_object_expr, evaluate_binary_expr } from './evals/expressions';
+import { eval_assignment, eval_call_expr, eval_idenifier, eval_member_expr, eval_object_expr, evaluate_binary_expr } from './evals/expressions';
 
 export function evaluate(astNode: Statement, env: Environment): RuntimeValue {
 
@@ -21,6 +21,9 @@ export function evaluate(astNode: Statement, env: Environment): RuntimeValue {
         
         case "CallExpr":
             return eval_call_expr(astNode as CallExpr, env);
+        
+        case "MemberExpr":
+            return eval_member_expr(env, undefined, astNode as MemberExpr);
 
         case "AssignmentExpr":
             return eval_assignment(astNode as AssignmentExpr, env);

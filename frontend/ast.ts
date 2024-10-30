@@ -3,6 +3,7 @@ export type NodeType =
     | "Program"
     | "VariableDeclaration"
     | "FunctionDeclaration"
+    | "IfStatement"
     
     // Expressions
     | "AssignmentExpr"
@@ -91,5 +92,12 @@ export interface CallExpr extends Expr {
     kind: "CallExpr";
     args: Expr[];
     caller: Expr;
+}
+
+export interface IfStatementExpr extends Expr {
+    kind: "IfStatement";
+    condition: Expr;
+    body: Statement[];
+    alternate?: Statement[];
 }
 
