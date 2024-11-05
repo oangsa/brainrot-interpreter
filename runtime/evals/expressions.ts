@@ -9,18 +9,23 @@ export function evaluate_numeric_binary_expr(lhs: NumberValue, rhs: NumberValue,
     switch (operator) {
         case "+":
             result = lhs.value + rhs.value;
+            break;
             
         case "-":
             result = lhs.value - rhs.value;
+            break;
 
         case "*":
             result = lhs.value * rhs.value;
+            break;
 
         case "/":
             result = lhs.value / rhs.value;
+            break;
 
         default:
             result = lhs.value % rhs.value;
+            break;
     }
 
     return {value: result, type: "number"}
