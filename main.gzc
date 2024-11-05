@@ -1,10 +1,14 @@
-yap object declaration.
+yap comment
 
-sigma Natacha = {
+sigma Car = {
   name: "Natacha",
-  speed: 169
+  speed: 123
 };
 
-yeet("This is a custom error lol")
+beta a = 5;
 
-yell(Natacha.name)
+yell("This is the value before change:", a)
+
+a = a + 6
+
+yell("This is the value after reasign:", a)
