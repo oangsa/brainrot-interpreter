@@ -17,7 +17,7 @@ export default class Parser {
         return prev;
     }
 
-    private expect (types: Token[], err: any) {
+    private expect(types: Token[], err: any) {
         const prev = this.tokens.shift() as Token;
 
         let Types: Array<any> = [];
