@@ -88,12 +88,14 @@ export default class Environment {
 
     public lookObj(expr: MemberExpr, value?: RuntimeValue, key?: Identifier): RuntimeValue {
         let pVal;
+        var varName;
+        
         if (expr.object.kind === "MemberExpr") {
-            pVal = this.lookObj(expr.object as MemberExpr, null, (expr.object as MemberExpr).property as Identifier)
+            pVal = this.lookObj(expr.object as MemberExpr, undefined, (expr.object as MemberExpr).property as Identifier);
         }
         else {
             
-            const varName = (expr.object as Identifier).symbol; // Grab the name
+            varName = (expr.object as Identifier).symbol; // Grab the name
             
             const env = this.resolve(varName);
             
@@ -107,6 +109,10 @@ export default class Environment {
         if (value) (pVal as ObjectValue).properties.set(prop, value);
 
         if (currentProp) pVal = ((pVal as ObjectValue).properties.get(currentProp) as ObjectValue);
+
+        if (pVal === undefined) {
+            throw `Skibidi dom dom yes yes. Don't you have eyes?\nUncaught Error: 'Variable named '${varName}' does not have the property '${currentProp}'.'`;
+        }
 
         return pVal;
     }

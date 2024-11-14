@@ -5,6 +5,6 @@ sigma Car = {
   speed: 169
 };
 
-yeet("This is a custom error lol")
+yap yeet("This is a custom error lol")
 
-yell(Natacha.name)
+yell(Car.x)
