@@ -1,105 +1,97 @@
-import { AssignmentExpr, BinaryExpr, CallExpr, Identifier, MemberExpr, ObjectLiteral } from "../../frontend/ast";
+import { AssignmentExpr, BinaryExpr, CallExpr, Identifier, MemberExpr, ObjectLiteral, RelationalExpr } from "../../frontend/ast";
 import Environment from "../environment";
 import { evaluate } from "../interpreter";
-import { NumberValue, RuntimeValue, MK_NULL, ObjectValue, InternalFnValue, UserDefinedFnValue, BooleanValue } from "../values";
+import { NumberValue, RuntimeValue, MK_NULL, ObjectValue, InternalFnValue, UserDefinedFnValue, BooleanValue, MK_NUM, MK_BOOL, StringValue, NullValue } from "../values";
 
-export function evaluate_numeric_binary_expr(lhs: NumberValue, rhs: NumberValue, operator: string): NumberValue {
-    let result: number = 0;
-
-    switch (operator) {
-        case "+":
-            result = lhs.value + rhs.value;
-            break;
-            
-        case "-":
-            result = lhs.value - rhs.value;
-            break;
-
-        case "*":
-            result = lhs.value * rhs.value;
-            break;
-
-        case "/":
-            result = lhs.value / rhs.value;
-            break;
-
-        default:
-            result = lhs.value % rhs.value;
-            break;
-    }
-
-    return {value: result, type: "number"}
-}
-
-export function evaluate_relation_expr(lhs: BooleanValue, rhs: BooleanValue, operator: string): BooleanValue {
-    let result: boolean;
-
-    switch (operator) {
-        case "&&":
-            result = lhs.value && rhs.value;
-            
+export function evaluate_numeric_binary_expr(lhs: RuntimeValue, rhs: RuntimeValue, operator: string): RuntimeValue {
+    switch(operator) {
         case "||":
-            result = lhs.value || rhs.value;
+            if(lhs.type !== "boolean" || rhs.type !== "boolean") return MK_BOOL(false);
+            return MK_BOOL((lhs as BooleanValue).value || (rhs as BooleanValue).value);
 
-        case ">":
-            result = lhs.value > rhs.value;
-
-        case ">=":
-            result = lhs.value >= rhs.value;
-
-        case "<":
-            result = lhs.value < rhs.value;
-        
-        case "<=":
-            result = lhs.value <= rhs.value;
+        case "&&":
+            if(lhs.type !== "boolean" || rhs.type !== "boolean") return MK_BOOL(false);
+            return MK_BOOL((lhs as BooleanValue).value && (rhs as BooleanValue).value);
 
         case "!=":
-            result = lhs.value <= rhs.value;
+            return equals(lhs, rhs, false);
 
-        default:
-            result = lhs.value != rhs.value;
+        case "==":
+            return equals(lhs, rhs, true);
+
+        default: {
+            if (lhs.type !== 'number' || rhs.type !== 'number') return MK_BOOL(false);
+
+            const llhs = lhs as NumberValue;
+            const rrhs = rhs as NumberValue;
+
+            switch (operator) {
+                case "+":
+                    return MK_NUM(llhs.value + rrhs.value);
+
+                case "-":
+                    return MK_NUM(llhs.value - rrhs.value);
+
+                case "*":
+                    return MK_NUM(llhs.value * rrhs.value);
+
+                case "/":
+                    return MK_NUM(llhs.value / rrhs.value);
+
+                case "%":
+                    return MK_NUM(llhs.value % rrhs.value);
+
+                case "<":
+                    return MK_BOOL(llhs.value < rrhs.value);
+
+                case ">":
+                    return MK_BOOL(llhs.value > rrhs.value);
+
+                case "<=":
+                    return MK_BOOL(llhs.value <= rrhs.value);
+
+                case ">=":
+                    return MK_BOOL(llhs.value >= rrhs.value);
+
+                default:
+                    throw `Unknown operator provided in operation: ${lhs}, ${rhs}.`
+            }
+        }
     }
-
-    return {value: result, type: "boolean"}
 }
 
-export function evaluate_comparison_expr(lhs: NumberValue, rhs: NumberValue, operator: string): BooleanValue {
-    let result: boolean;
+function equals(lhs: RuntimeValue, rhs: RuntimeValue, strict: boolean): RuntimeValue {
+    const compare = strict ? (a: unknown, b: unknown) => a === b : (a: unknown, b: unknown) => a !== b;
 
-    switch (operator) {
-
-        case ">":
-            result = lhs.value > rhs.value;
-
-        case ">=":
-            result = lhs.value >= rhs.value;
-
-        case "<":
-            result = lhs.value < rhs.value;
-        
-        case "<=":
-            result = lhs.value <= rhs.value;
-
-        case "!=":
-            result = lhs.value <= rhs.value;
-
+    switch (lhs.type) {
+        case 'boolean':
+            return MK_BOOL(compare((lhs as BooleanValue).value, (rhs as BooleanValue).value));
+        case 'number':
+            return MK_BOOL(compare((lhs as NumberValue).value, (rhs as NumberValue).value));
+        case 'string':
+            return MK_BOOL(compare((lhs as StringValue).value, (rhs as StringValue).value));
+        case 'user-defined-fn':
+            return MK_BOOL(compare((lhs as UserDefinedFnValue).body, (rhs as UserDefinedFnValue).body));
+        case 'internal-fn':
+            return MK_BOOL(compare((lhs as InternalFnValue).call, (rhs as InternalFnValue).call));
+        case 'null':
+            return MK_BOOL(compare((lhs as NullValue).value, (rhs as NullValue).value));
+        case 'object':
+            return MK_BOOL(compare((lhs as ObjectValue).properties, (rhs as ObjectValue).properties));
+        // case 'array':
+        //     return MK_BOOL(compare((lhs as ArrayVal).values, (rhs as ArrayVal).values ));
         default:
-            result = lhs.value != rhs.value;
+            throw `[RunTime Error]: Unhandled type in equals function: ${lhs.type}, ${rhs.type}`
     }
-
-    return {value: result, type: "boolean"}
 }
 
-export function evaluate_binary_expr (biop: BinaryExpr, env: Environment): RuntimeValue {
+export function evaluate_binary_expr(biop: BinaryExpr, env: Environment): RuntimeValue {
     const lhs = evaluate(biop.lhs, env);
     const rhs = evaluate(biop.rhs, env);
 
-    if (lhs.type == 'number' && rhs.type == 'number') {
-        return evaluate_numeric_binary_expr(lhs as NumberValue, rhs as NumberValue, biop.operator);
-    }
-
-    return MK_NULL();
+    return evaluate_numeric_binary_expr(lhs, rhs, biop.operator);
 }
+
 
 export function eval_idenifier(ident: Identifier, env: Environment): RuntimeValue {
     const val = env.lookFor(ident.symbol);
@@ -109,14 +101,14 @@ export function eval_idenifier(ident: Identifier, env: Environment): RuntimeValu
 
 export function eval_object_expr(obj: ObjectLiteral, env: Environment): RuntimeValue {
     const object = { type: "object", properties: new Map() } as ObjectValue;
-    
+
     for (const { key, value } of obj.properties) {
         // Handle valid key: value
         const runtimeValue = (value == undefined ? env.lookFor(key) : evaluate(value, env));
 
         object.properties.set(key, runtimeValue);
     }
-    
+
     return object;
 }
 
@@ -127,8 +119,8 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeValue {
     if (fn.type == "internal-fn") {
         const res = (fn as InternalFnValue).call(args, env);
         return res;
-        
-    } 
+
+    }
     else if (fn.type == "user-defined-fn") {
         const func = fn as UserDefinedFnValue;
         const scope = new Environment(func.declarationEnv);
@@ -141,11 +133,11 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeValue {
         }
 
         let res: RuntimeValue = MK_NULL()
-        
+
         for (const stmt of func.body) {
             res = evaluate(stmt, scope)
         }
-        
+
         return res;
     }
 
@@ -156,7 +148,7 @@ export function eval_call_expr(expr: CallExpr, env: Environment): RuntimeValue {
 export function eval_member_expr(env: Environment, node: AssignmentExpr, expr: MemberExpr): RuntimeValue {
     if (expr) return env.lookObj(expr);
     if (node) return env.lookObj(node.assigne as MemberExpr, evaluate(node.value, env));
-    
+
     throw `You have no part of symphony 🐬🐬\n[Runtime Error]: Variable named '${(node as AssignmentExpr).assigne} is not an object.'`;
 }
 
@@ -169,5 +161,3 @@ export function eval_assignment(node: AssignmentExpr, env: Environment): Runtime
 
     return env.assignVar(varName, evaluate(node.value, env));
 }
-
-

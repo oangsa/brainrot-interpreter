@@ -1,22 +1,23 @@
-export type NodeType = 
+export type NodeType =
     // Statements
     | "Program"
     | "VariableDeclaration"
     | "FunctionDeclaration"
     | "IfStatement"
-    
+
     // Expressions
     | "AssignmentExpr"
-    | "BinaryExpr" 
+    | "BinaryExpr"
     | "CallExpr"
     | "UnaryExpr"
     | "MemberExpr"
-    
+    | "RelationalExpr"
+
     // Literals
     | "Property"
     | "ObjectLiteral"
     | "Identifier"
-    | "StringLiteral" 
+    | "StringLiteral"
     | "NumericLiteral";
 
 export interface Statement {
@@ -54,6 +55,19 @@ export interface BinaryExpr extends Expr {
     kind: "BinaryExpr"
     lhs: Expr;
     rhs: Expr,
+    operator: string;
+}
+
+export interface UnaryExpr extends Expr {
+    kind: "UnaryExpr";
+    operator: string;
+    expr: Expr;
+}
+
+export interface RelationalExpr extends Expr {
+    kind: "RelationalExpr";
+    lhs: Expr;
+    rhs: Expr;
     operator: string;
 }
 
@@ -100,4 +114,3 @@ export interface IfStatementExpr extends Expr {
     body: Statement[];
     alternate?: Statement[];
 }
-

@@ -1,14 +1,7 @@
-yap comment
+cooking adder(a, b) {
+    a + b
+}
 
-sigma Car = {
-  name: "Natacha",
-  speed: 123
-};
+beta c = adder(5, 6);
 
-beta a = 5;
-
-yell("This is the value before change:", a)
-
-a = a + 6
-
-yell("This is the value after reasign:", a)
+yell(c)
